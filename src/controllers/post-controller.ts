@@ -35,7 +35,7 @@ export const savePost = async (req: Request, res: Response) => {
 
         const docRef = db.collection("posts").doc();
         await docRef.set(newPost);
-        return res.status(201).json(newPost);
+        return res.status(201).json({ id: docRef.id, ...newPost });
       }
 
       // get content type of the response
@@ -89,7 +89,7 @@ export const savePost = async (req: Request, res: Response) => {
         // save to firestore
         await docRef.set(newPost);
 
-        return res.status(201).json(newPost);
+        return res.status(201).json({ id: docRef.id, ...newPost });
       } else if (isImage(contentType)) {
         // TODO: handle image
         return res.status(415).json({ contentType, message: "content type not supported" });
