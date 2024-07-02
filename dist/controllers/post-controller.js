@@ -15,7 +15,6 @@ const network_1 = require("../utils/network");
 const content_type_1 = require("../utils/content-type");
 const link_preview_1 = require("../utils/link-preview");
 const savePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(req);
     try {
         const { type } = req.body;
         console.log(type, req.body);
@@ -41,7 +40,7 @@ const savePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 };
                 const docRef = firebase_1.db.collection("posts").doc();
                 yield docRef.set(newPost);
-                return res.status(201).json(newPost);
+                return res.status(201).json(Object.assign({ id: docRef.id }, newPost));
             }
             // get content type of the response
             const contentType = response.headers.get("content-type");
@@ -88,7 +87,7 @@ const savePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 }
                 // save to firestore
                 yield docRef.set(newPost);
-                return res.status(201).json(newPost);
+                return res.status(201).json(Object.assign({ id: docRef.id }, newPost));
             }
             else if ((0, content_type_1.isImage)(contentType)) {
                 // TODO: handle image
