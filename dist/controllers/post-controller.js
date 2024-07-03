@@ -27,6 +27,7 @@ const savePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 const newPost = {
                     type: "link",
                     title: new URL(url).hostname.replace("www.", ""),
+                    title_lower: new URL(url).hostname.replace("www.", "").toLowerCase(),
                     description: "",
                     url: url,
                     domain: new URL(url).hostname.replace("www.", ""),
@@ -55,6 +56,7 @@ const savePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 const newPost = {
                     type: "link",
                     title: linkPreview.title,
+                    title_lower: linkPreview.title.toLowerCase(),
                     description: linkPreview.description,
                     url: url,
                     domain: linkPreview.domain,
