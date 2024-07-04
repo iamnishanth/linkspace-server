@@ -17,7 +17,6 @@ const link_preview_1 = require("../utils/link-preview");
 const savePost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { type } = req.body;
-        console.log(type, req.body);
         if (type === "link") {
             const { url, uid } = req.body;
             const response = yield fetch(url, { method: "GET", headers: network_1.browserHeaders });

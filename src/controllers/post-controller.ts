@@ -9,7 +9,7 @@ import { getLinkPreview } from "../utils/link-preview";
 export const savePost = async (req: Request, res: Response) => {
   try {
     const { type } = req.body as SaveRequest;
-    console.log(type, req.body);
+
     if (type === "link") {
       const { url, uid } = req.body;
 
