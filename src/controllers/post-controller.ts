@@ -3,8 +3,9 @@ import type { ImageProperties, SaveRequest } from "../utils/types";
 
 import { bucket, db } from "../lib/firebase";
 import { browserHeaders, getFirebaseTimestamp } from "../utils/network";
-import { isHtml, isImage } from "../utils/content-type";
+import { getImageBufferFromUrl, isHtml, isImage } from "../utils/content-type";
 import { getLinkPreview } from "../utils/link-preview";
+import imageSize from "image-size";
 
 export const savePost = async (req: Request, res: Response) => {
   try {
@@ -93,7 +94,58 @@ export const savePost = async (req: Request, res: Response) => {
 
         return res.status(201).json({ id: docRef.id, ...newPost });
       } else if (isImage(contentType)) {
-        // TODO: handle image
+        const imageBuffer = await getImageBufferFromUrl(url);
+        if (imageBuffer) {
+          const _imageBuffer = new Uint8Array(imageBuffer);
+          const dimensions = imageSize(_imageBuffer);
+
+          const imageMetaData = {
+            url: url,
+            buffer: imageBuffer,
+            width: dimensions.width,
+            height: dimensions.height,
+            extension: dimensions.type,
+          };
+
+          const docRef = db.collection("posts").doc();
+          // upload to firebase storage
+          const fileName = `${uid}/${docRef.id}.${imageMetaData.extension}`;
+          const file = bucket.file(fileName);
+          const buffer = Buffer.from(imageMetaData.buffer);
+          await file.save(buffer);
+          const imageURL = await file.getSignedUrl({
+            action: "read",
+            expires: "03-01-2500",
+          });
+
+          const image = {
+            url: imageURL[0],
+            width: imageMetaData.width,
+            height: imageMetaData.height,
+            alt: "",
+            fileName,
+          };
+
+          const newPost = {
+            type: "image",
+            title: "",
+            title_lower: "",
+            description: "",
+            url: url,
+            domain: new URL(url).hostname.replace("www.", ""),
+            tags: [] as string[],
+            notes: "",
+            created_at: getFirebaseTimestamp(),
+            updated_at: getFirebaseTimestamp(),
+            user_id: uid,
+            image: image,
+            space_ids: [] as string[],
+          };
+
+          await docRef.set(newPost);
+          return res.status(201).json({ id: docRef.id, ...newPost });
+        }
+
         return res.status(415).json({ contentType, message: "content type not supported" });
       } else {
         return res.status(415).json({ contentType, message: "content type not supported" });
