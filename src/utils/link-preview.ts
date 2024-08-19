@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import imageSize from "image-size";
 
-import { getImageBufferFromUrl } from "./content-type";
+import { getBaseURL, getImageBufferFromUrl } from "./content-type";
 import { RichLinkImage } from "./types";
 
 const getTitle = ($: cheerio.CheerioAPI): string => {
@@ -36,10 +36,13 @@ const getDescription = ($: cheerio.CheerioAPI): string => {
   return "";
 };
 
-const getImage = async ($: cheerio.CheerioAPI): Promise<RichLinkImage | null> => {
+const getImage = async ($: cheerio.CheerioAPI, url: string): Promise<RichLinkImage | null> => {
+  const baseURL = getBaseURL(url);
+
   // get open graph image
-  const ogImage = $("meta[property='og:image']").attr("content");
+  let ogImage = $("meta[property='og:image']").attr("content");
   if (ogImage && ogImage.length > 0) {
+    if (ogImage.startsWith("/")) ogImage = baseURL + ogImage;
     const imageBuffer = await getImageBufferFromUrl(ogImage);
     if (imageBuffer) {
       const _imageBuffer = new Uint8Array(imageBuffer);
@@ -56,8 +59,9 @@ const getImage = async ($: cheerio.CheerioAPI): Promise<RichLinkImage | null> =>
   }
 
   // get image rel link
-  const relImage = $("link[rel='image_src']").attr("href");
+  let relImage = $("link[rel='image_src']").attr("href");
   if (relImage && relImage.length > 0) {
+    if (relImage.startsWith("/")) relImage = baseURL + relImage;
     const imageBuffer = await getImageBufferFromUrl(relImage);
     if (imageBuffer) {
       const _imageBuffer = new Uint8Array(imageBuffer);
@@ -73,8 +77,9 @@ const getImage = async ($: cheerio.CheerioAPI): Promise<RichLinkImage | null> =>
   }
 
   // get twitter image
-  const twitterImage = $("meta[name='twitter:image']").attr("content");
+  let twitterImage = $("meta[name='twitter:image']").attr("content");
   if (twitterImage && twitterImage.length > 0) {
+    if (twitterImage.startsWith("/")) twitterImage = baseURL + twitterImage;
     const imageBuffer = await getImageBufferFromUrl(twitterImage);
     if (imageBuffer) {
       const _imageBuffer = new Uint8Array(imageBuffer);
@@ -112,7 +117,7 @@ export const getLinkPreview = async (html: string, url: string) => {
   const $ = cheerio.load(html);
   const title = getTitle($);
   const description = getDescription($);
-  const image = await getImage($);
+  const image = await getImage($, url);
   const domain = getDomain($, url);
 
   const linkPreview = { title, description, image, domain };

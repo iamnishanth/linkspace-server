@@ -28,3 +28,8 @@ export const getImageBufferFromUrl = async (url: string): Promise<ArrayBuffer | 
     return null;
   }
 };
+
+export const getBaseURL = (url: string) => {
+  const parsedUrl = new URL(url);
+  return `${parsedUrl.protocol}//${parsedUrl.host}`;
+};
